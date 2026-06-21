@@ -1,0 +1,40 @@
+# CodeQL static analysis for R
+# Runs on push, PR, and weekly schedule. Results appear in the Security tab.
+# No secrets or external accounts required.
+name: CodeQL
+
+on:
+  push:
+    branches: ["dev", "main"]
+  pull_request:
+    branches: ["dev", "main"]
+  schedule:
+    - cron: '16 2 * * 1'
+
+permissions:
+  contents: read
+
+jobs:
+  analyze:
+    name: Analyze R code
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+      actions: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: r
+          # Extend with a custom query suite if needed:
+          # queries: security-extended
+
+      - name: Perform CodeQL analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:r"
