@@ -1,0 +1,44 @@
+# Requires a codescan.io account. Configure the following repository secrets:
+# CODESCAN_AUTH_TOKEN, CODESCAN_ORGANIZATION_KEY, CODESCAN_PROJECT_KEY
+# See https://github.com/codescan-io/codescan-scanner-action
+name: CodeScan
+
+on:
+  push:
+    branches: ["dev", "main"]
+  pull_request:
+    branches: ["dev", "main"]
+  schedule:
+    - cron: '22 17 * * 0'
+
+permissions:
+  contents: read
+
+jobs:
+  CodeScan:
+    permissions:
+      contents: read
+      security-events: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Cache SonarQube files
+        uses: actions/cache@v4
+        with:
+          path: ~/.sonar
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+
+      - name: Run CodeScan analysis
+        uses: codescan-io/codescan-scanner-action@5b2e8c5683ef6a5adc8fa3b7950bb07debccce12
+        with:
+          login: ${{ secrets.CODESCAN_AUTH_TOKEN }}
+          organization: ${{ secrets.CODESCAN_ORGANIZATION_KEY }}
+          projectKey: ${{ secrets.CODESCAN_PROJECT_KEY }}
+
+      - name: Upload SARIF results
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: codescan.sarif
